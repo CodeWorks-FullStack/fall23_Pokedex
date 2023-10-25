@@ -1,41 +1,72 @@
 <template>
-  <div class="home flex-grow-1 d-flex flex-column align-items-center justify-content-center">
-    <div class="home-card p-5 bg-white rounded elevation-3">
-      <img src="https://bcw.blob.core.windows.net/public/img/8600856373152463" alt="CodeWorks Logo"
-        class="rounded-circle">
-      <h1 class="my-5 bg-dark text-white p-3 rounded text-center">
-        Vue 3 Starter
-      </h1>
+  <div class="container">
+    <div class="row">
+      <!-- LEFT SIDE -->
+      <div v-for="p in pokemon" :key="p.id" class="col-2">
+        <Pokemon :pokemon="p" />
+      </div>
+      <button
+        :disabled="!previous"
+        class="btn btn-outline-dark"
+        @click="changePage(previous)"
+      >
+        Previous
+      </button>
+      <button
+        :disabled="!next"
+        class="btn btn-outline-dark"
+        @click="changePage(next)"
+      >
+        Next
+      </button>
+      <!-- MIDDLE -->
+      <div v-if="activePokemon" class="col-8">
+        {{ activePokemon.name }}
+      </div>
+      <div v-else class="col - 8">Loading...</div>
+      <!-- RIGHT -->
+      <div class="col-2">test</div>
     </div>
   </div>
 </template>
 
 <script>
+import { computed, onMounted } from "vue";
+import { pokemonService } from "../services/PokemonService.js";
+import { logger } from "../utils/Logger.js";
+import { AppState } from "../AppState.js";
+import Pop from "../utils/Pop.js";
+
 export default {
   setup() {
-    return {}
-  }
-}
+    onMounted(() => {
+      getPokemon();
+    });
+    async function getPokemon() {
+      try {
+        await pokemonService.getPokemon();
+      } catch (error) {
+        logger.error("[ERROR]", error);
+        Pop.error("[ERROR]", error.message);
+      }
+    }
+    return {
+      pokemon: computed(() => AppState.pokemon),
+      activePokemon: computed(() => AppState.activePokemon),
+      previous: computed(() => AppState.previousPage),
+      next: computed(() => AppState.nextPage),
+
+      async changePage(url) {
+        try {
+          await pokemonService.changePage(url);
+        } catch (error) {
+          logger.error("[ERROR]", error);
+          Pop.error("[ERROR]", error.message);
+        }
+      },
+    };
+  },
+};
 </script>
 
-<style scoped lang="scss">
-.home {
-  display: grid;
-  height: 80vh;
-  place-content: center;
-  text-align: center;
-  user-select: none;
-
-  .home-card {
-    width: 50vw;
-
-    >img {
-      height: 200px;
-      max-width: 200px;
-      width: 100%;
-      object-fit: contain;
-      object-position: center;
-    }
-  }
-}
-</style>
+<style scoped lang="scss"></style>
